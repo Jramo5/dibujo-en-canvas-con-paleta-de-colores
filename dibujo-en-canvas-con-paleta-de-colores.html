@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <canvas width="600" height="400"></canvas>
+
+    <script>
+
+        let pantalla = document.querySelector('canvas');
+        let pincel = pantalla.getContext('2d');
+        let colores = ["red", "green", "blue"];
+        let puedoDibujar = false;
+        let colorDefault = 0;
+        let widthAcumulado = 0;
+        let paleta = [];
+        let ultimoObjeto = 0;
+        let ultimoId = 0;
+
+        pincel.fillStyle = 'grey';
+        pincel.fillRect(0, 0, 600, 400);
+
+        function paletaColores() {
+            colorDefault++
+            if (colorDefault > colores.length) {
+                colorDefault = 0;
+            }
+        }
+
+        function crearPaleta(x, y) {
+            for (let i = 0; i < colores.length; i++) {
+                pincel.fillStyle = colores[i];
+                pincel.fillRect(widthAcumulado, 0, x, y);
+                widthAcumulado += x;
+                //Creo un array que representa cada color de la paleta
+                paleta.push({
+                    id: i, // 0
+                    color: colores[i], // 1
+                    anchoInicial: x, // 2
+                    altura: y, // 3
+                    anchoTotal: widthAcumulado // 4
+                });
+            }
+        }
+
+        let posicionAnterior = {x:0, y:0}
+
+        function dibujarCirculo(evento) {
+            let x = evento.pageX - pantalla.offsetLeft;
+            let y = evento.pageY - pantalla.offsetTop;
+
+            // Aqui se cuantos indices tiene mi array desde 
+            // 0 al numero de indice atraves del id
+            ultimoObjeto = paleta[paleta.length - 1];
+            ultimoId = ultimoObjeto.id;
+
+            if (y > paleta[ultimoId].altura || x > paleta[ultimoId].anchoTotal) {
+                if (puedoDibujar) {
+                    pincel.fillStyle = paleta[colorDefault].color;
+                    pincel.beginPath();
+                    pincel.arc(x, y, 5, 0, 2 * 3.14);
+                    pincel.fill();
+                }
+            }
+        }
+
+        crearPaleta(50, 50)
+
+        pantalla.onmousemove = dibujarCirculo;
+
+        function habilitarDibujar() {
+            puedoDibujar = true;
+        }
+
+        function deshabilitarDibujar() {
+            puedoDibujar = false;
+        }
+
+        
+        function colorEscogido(evento) {
+            let x = evento.pageX - pantalla.offsetLeft;
+            let y = evento.pageY - pantalla.offsetTop;
+
+            for (let i = 0; i < paleta.length; i++) {
+                if (x < paleta[i].anchoTotal && y < paleta[i].altura) {
+                    colorDefault = paleta[i].id;
+                    break;
+                }
+            }
+        }
+
+        pantalla.onmousedown = habilitarDibujar;
+
+        pantalla.onclick = colorEscogido;
+
+        pantalla.onmouseup = deshabilitarDibujar;
+
+    </script>
+
+</body>
+
+</html>
